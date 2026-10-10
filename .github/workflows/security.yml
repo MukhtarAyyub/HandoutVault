@@ -1,0 +1,47 @@
+name: Tests & dependency security scan
+
+# SECURITY.md, "Scan dependencies": this project's own build environment
+# had no network access to run `pip-audit` itself (see SECURITY.md for
+# what that means for everything in this repo) — this workflow is what
+# actually runs it, on every push and PR, once the repo is on GitHub.
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  schedule:
+    # Catch newly-disclosed CVEs in already-pinned dependencies, not just
+    # ones introduced by a code change — Sundays at 06:00 UTC.
+    - cron: "0 6 * * 0"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run migrations (SQLite, for the test DB)
+        run: python manage.py migrate
+        env:
+          DJANGO_SECRET_KEY: ci-test-key-not-used-in-production
+      - name: Run the test suite
+        run: python manage.py test
+        env:
+          DJANGO_SECRET_KEY: ci-test-key-not-used-in-production
+
+  dependency-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: pip-audit
+        run: pip-audit -r requirements.txt

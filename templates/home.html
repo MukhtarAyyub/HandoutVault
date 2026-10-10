@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Find your course handouts{% endblock %}
+
+{% block content %}
+<section class="hero py-4 py-md-5 mb-4 border-bottom">
+  <h1 class="font-display hero-title mb-3">Find the lecture note, not the runaround.</h1>
+  <p class="text-muted hero-subtitle mb-4">Search by course code, topic, or title — or browse down from your faculty to your department to your course.</p>
+  <form action="{% url 'materials:material_list' %}" method="get" class="d-flex hero-search">
+    <input type="search" name="q" class="form-control form-control-lg me-2" placeholder="e.g. CSE 203,Software Engineering…" aria-label="Search course, topic or lecturer">
+    <button type="submit" class="btn btn-primary btn-lg">Search</button>
+  </form>
+</section>
+
+<section>
+  <h2 class="font-display h4 mb-3">Faculties</h2>
+  {% if faculties %}
+    <div class="directory-list">
+      {% for faculty in faculties %}
+        <a class="directory-item" href="{% url 'academics:department_list' faculty.slug %}">
+          <span class="name">{{ faculty.name }}</span>
+          <span class="arrow">{{ faculty.departments.count }} department{{ faculty.departments.count|pluralize }} &rsaquo;</span>
+        </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-muted">No faculties have been added yet. An administrator can add them from the <a href="{% url 'admin:index' %}">admin dashboard</a>.</p>
+  {% endif %}
+</section>
+{% endblock %}

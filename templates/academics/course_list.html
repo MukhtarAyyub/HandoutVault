@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}{{ department.name }} — University Materials{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="small text-muted mb-2">
+  <a href="{% url 'home' %}">Faculties</a> &rsaquo;
+  <a href="{% url 'academics:department_list' department.faculty.slug %}">{{ department.faculty.name }}</a> &rsaquo;
+  {{ department.name }}
+</nav>
+<h1 class="font-display h3 mb-4">{{ department.name }}</h1>
+
+{% if courses %}
+  <div class="directory-list">
+    {% for course in courses %}
+      <a class="directory-item" href="{% url 'materials:material_list' %}?course={{ course.id }}">
+        <span class="name">{{ course.code }} — {{ course.title }}</span>
+        <span class="arrow">{{ course.materials.count }} material{{ course.materials.count|pluralize }} &rsaquo;</span>
+      </a>
+    {% endfor %}
+  </div>
+{% else %}
+  <p class="text-muted">No courses have been added to this department yet.</p>
+{% endif %}
+{% endblock %}

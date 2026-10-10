@@ -1,0 +1,135 @@
+{#
+  Materials browse/search page.
+
+  Query params (all optional, all combinable): q, faculty, department,
+  course, level, semester, session, file_type, page. Built by
+  materials.views.material_list — see that view's docstring for the
+  exact filtering logic. Every filter round-trips through GET so the
+  page is a plain shareable/bookmarkable URL, no JS state required.
+#}
+{% extends "base.html" %}
+
+{% block title %}Browse materials — University Materials{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+  <div>
+    <h1 class="font-display h3 mb-1">Materials</h1>
+    <p class="text-muted small mb-0">
+      {{ page_obj.paginator.count }} result{{ page_obj.paginator.count|pluralize }}{% if query %} for &ldquo;{{ query }}&rdquo;{% endif %}
+    </p>
+  </div>
+  <button class="btn btn-outline-primary btn-sm d-md-none" type="button" data-bs-toggle="collapse" data-bs-target="#filterPanel" aria-expanded="false" aria-controls="filterPanel">
+    Filters
+  </button>
+</div>
+
+<div class="row g-4">
+  <div class="col-md-3">
+    <div id="filterPanel" class="collapse d-md-block">
+      <form method="get" class="panel filter-panel">
+        <input type="hidden" name="q" value="{{ query }}">
+
+        <div class="mb-3">
+          <label class="form-label" for="filter-faculty">Faculty</label>
+          <select id="filter-faculty" name="faculty" class="form-select form-select-sm" onchange="this.form.submit()">
+            <option value="">All faculties</option>
+            {% for faculty in faculties %}
+              <option value="{{ faculty.slug }}" {% if selected.faculty == faculty.slug %}selected{% endif %}>{{ faculty.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="filter-level">Level</label>
+          <select id="filter-level" name="level" class="form-select form-select-sm" onchange="this.form.submit()">
+            <option value="">All levels</option>
+            {% for value, label in levels %}
+              <option value="{{ value }}" {% if selected.level == value|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="filter-semester">Semester</label>
+          <select id="filter-semester" name="semester" class="form-select form-select-sm" onchange="this.form.submit()">
+            <option value="">All semesters</option>
+            {% for semester in semesters %}
+              <option value="{{ semester.id }}" {% if selected.semester == semester.id|stringformat:"s" %}selected{% endif %}>{{ semester }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="filter-session">Session</label>
+          <select id="filter-session" name="session" class="form-select form-select-sm" onchange="this.form.submit()">
+            <option value="">All sessions</option>
+            {% for session in sessions %}
+              <option value="{{ session.id }}" {% if selected.session == session.id|stringformat:"s" %}selected{% endif %}>{{ session.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="filter-filetype">File type</label>
+          <select id="filter-filetype" name="file_type" class="form-select form-select-sm" onchange="this.form.submit()">
+            <option value="">All types</option>
+            {% for ft in file_types %}
+              <option value="{{ ft }}" {% if selected.file_type == ft %}selected{% endif %}>{{ ft|upper }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        {% if selected.course %}
+          <input type="hidden" name="course" value="{{ selected.course }}">
+          <p class="small text-muted mb-3">Filtered to one course from the catalog.</p>
+        {% endif %}
+
+        <noscript><button type="submit" class="btn btn-ink btn-sm w-100">Apply filters</button></noscript>
+        {% if selected.faculty or selected.level or selected.semester or selected.session or selected.file_type or selected.course %}
+          <a href="{% url 'materials:material_list' %}{% if query %}?q={{ query }}{% endif %}" class="btn btn-outline-secondary btn-sm w-100 mt-2">Clear filters</a>
+        {% endif %}
+      </form>
+    </div>
+  </div>
+
+  <div class="col-md-9">
+    {% if page_obj %}
+      <div class="registry">
+        {% for material in page_obj %}
+          <a href="{{ material.get_absolute_url }}" class="registry-row">
+            <span class="code">{{ material.course.code }}</span>
+            <span class="details">
+              <span class="title">{{ material.title }}</span>
+              <div class="mt-1">
+                <span class="badge-level px-2 py-1 me-1 d-inline-block">{{ material.get_level_display }}</span>
+                <span class="badge-level px-2 py-1 me-1 d-inline-block">{{ material.semester }}</span>
+                <span class="badge-level px-2 py-1 d-inline-block">{{ material.session }}</span>
+                {% if material.topic %}<span class="text-muted small d-block d-sm-inline ms-sm-1">{{ material.topic }}</span>{% endif %}
+              </div>
+            </span>
+            <span class="filetype">{{ material.file_type|upper }}</span>
+            {% if material.id in bookmarked_ids %}<span class="bookmark-flag" title="Bookmarked">&#9733;</span>{% endif %}
+          </a>
+        {% endfor %}
+      </div>
+
+      {% if page_obj.has_other_pages %}
+        <nav class="mt-4" aria-label="Pagination">
+          <ul class="pagination pagination-sm">
+            {% if page_obj.has_previous %}
+              <li class="page-item"><a class="page-link" href="?{{ base_query }}&page={{ page_obj.previous_page_number }}">Previous</a></li>
+            {% endif %}
+            <li class="page-item disabled"><span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+            {% if page_obj.has_next %}
+              <li class="page-item"><a class="page-link" href="?{{ base_query }}&page={{ page_obj.next_page_number }}">Next</a></li>
+            {% endif %}
+          </ul>
+        </nav>
+      {% endif %}
+    {% else %}
+      <p class="text-muted">No materials match your search. Try a different course code, or clear your filters.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

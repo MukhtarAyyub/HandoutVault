@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Delete material — University Materials{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-md-7">
+    <h1 class="font-display h3 mb-3">Delete this material?</h1>
+    <div class="panel mb-3">
+      <p class="mb-1"><strong>{{ material.title }}</strong></p>
+      <p class="text-muted mb-0">{{ material.course.code }} — {{ material.course.title }}, {{ material.get_level_display }}</p>
+    </div>
+    <p class="text-muted">This removes the file from storage and its metadata from the catalog, including any student bookmarks and its download history. This can't be undone.</p>
+
+    <form method="post" class="d-flex gap-2">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-outline-danger">Yes, delete it</button>
+      <a href="{{ material.get_absolute_url }}" class="btn btn-outline-secondary">Cancel</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

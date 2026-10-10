@@ -1,0 +1,318 @@
+/* ---------------------------------------------------------------------
+   University Materials — design tokens
+   Concept: a campus registry / card-catalog, not a SaaS dashboard.
+   Rows and hairlines carry structure; the gold accent is spent only on
+   actions that matter (download, bookmark, primary submit).
+   ------------------------------------------------------------------ */
+:root {
+  --ink: #16223e;
+  --ink-soft: #3a4a6b;
+  --paper: #f4f5f1;
+  --surface: #ffffff;
+  --accent: #b8862e;
+  --accent-dark: #8f6a22;
+  --line: #dcded6;
+  --line-strong: #b9bcb1;
+  --text: #1c2230;
+  --text-muted: #5b6478;
+  --success: #2f6b4f;
+  --success-bg: #e8f0ea;
+  --danger: #a23b3b;
+  --danger-bg: #f5e9e8;
+  --warning-bg: #f6efe1;
+  --font-display: "Lora", Georgia, "Times New Roman", serif;
+  --font-body: "IBM Plex Sans", -apple-system, "Segoe UI", sans-serif;
+  --radius-sm: 3px;
+  --radius-md: 6px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--paper);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+h1, h2, h3, h4, .font-display {
+  font-family: var(--font-display);
+  color: var(--ink);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+a {
+  color: var(--ink);
+  text-decoration-color: var(--line-strong);
+}
+a:hover {
+  color: var(--accent-dark);
+}
+
+/* ---------------- Header / nav ---------------- */
+.site-header {
+  background: var(--ink);
+  border-bottom: 3px solid var(--accent);
+}
+.site-header .navbar-brand {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.35rem;
+  color: #fff;
+  letter-spacing: -0.01em;
+}
+.site-header .nav-link {
+  color: #cfd6e6;
+  font-size: 0.94rem;
+}
+.site-header .nav-link:hover,
+.site-header .nav-link.active {
+  color: #fff;
+}
+.site-header .btn-role {
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #fff;
+  border-radius: var(--radius-sm);
+  padding: 0.3rem 0.75rem;
+  font-size: 0.85rem;
+}
+
+.search-form input[type="search"] {
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+}
+
+/* ---------------- Buttons & forms ---------------- */
+.btn {
+  border-radius: var(--radius-sm);
+  font-size: 0.94rem;
+  padding: 0.45rem 1rem;
+}
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.btn-primary:hover,
+.btn-primary:focus {
+  background: var(--accent-dark);
+  border-color: var(--accent-dark);
+  color: #fff;
+}
+.btn-outline-primary {
+  color: var(--ink);
+  border-color: var(--line-strong);
+}
+.btn-outline-primary:hover {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
+.btn-ink {
+  background: var(--ink);
+  color: #fff;
+  border-radius: var(--radius-sm);
+}
+.btn-ink:hover {
+  background: var(--ink-soft);
+  color: #fff;
+}
+.btn:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.form-control,
+.form-select {
+  border-radius: var(--radius-sm);
+  border-color: var(--line);
+}
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 0.2rem rgba(184, 134, 46, 0.15);
+}
+label {
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+
+/* ---------------- Registry rows (materials list) ---------------- */
+.registry {
+  border-top: 1px solid var(--line-strong);
+}
+.registry-row {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  padding: 0.95rem 0.25rem;
+  border-bottom: 1px solid var(--line);
+  text-decoration: none;
+  color: var(--text);
+}
+.registry-row:hover {
+  background: var(--surface);
+}
+.registry-row .code {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--ink);
+  min-width: 5.5rem;
+  flex-shrink: 0;
+}
+.registry-row .details {
+  flex: 1;
+  min-width: 0;
+}
+.registry-row .title {
+  color: var(--text);
+  font-weight: 500;
+}
+.registry-row .meta {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+.registry-row .filetype {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  padding: 0.1rem 0.4rem;
+}
+.registry-row .bookmark-flag {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+/* ---------------- Directory cards (faculties / departments) --------- */
+.directory-list {
+  border-top: 1px solid var(--line-strong);
+}
+.directory-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.1rem 0.25rem;
+  border-bottom: 1px solid var(--line);
+  text-decoration: none;
+  color: var(--text);
+}
+.directory-item:hover {
+  color: var(--accent-dark);
+}
+.directory-item .name {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  color: var(--ink);
+}
+.directory-item .arrow {
+  color: var(--line-strong);
+}
+
+/* ---------------- Panels ---------------- */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+}
+
+.filter-panel .form-label {
+  margin-bottom: 0.2rem;
+}
+
+/* ---------------- Stat blocks (admin dashboard) ---------------- */
+.stat-block {
+  border-left: 3px solid var(--accent);
+  padding: 0.25rem 0 0.25rem 0.9rem;
+}
+.stat-block .stat-number {
+  font-family: var(--font-display);
+  font-size: 2.1rem;
+  color: var(--ink);
+  line-height: 1;
+}
+.stat-block .stat-label {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+/* ---------------- Misc ---------------- */
+.hairline {
+  border-top: 1px solid var(--line);
+}
+.badge-level {
+  background: var(--paper);
+  border: 1px solid var(--line-strong);
+  color: var(--ink-soft);
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+  font-size: 0.78rem;
+}
+.pdf-preview {
+  width: 100%;
+  height: 70vh;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+.site-footer {
+  border-top: 1px solid var(--line);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+.alert {
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+}
+.alert-success { background: var(--success-bg); color: var(--success); border-color: #cfe2d7; }
+.alert-danger  { background: var(--danger-bg);  color: var(--danger);  border-color: #e6cccc; }
+.alert-info    { background: #e8eef6; color: var(--ink-soft); border-color: #ccd7ea; }
+.alert-warning { background: var(--warning-bg); color: #7a5a16; border-color: #e7d6ad; }
+
+/* ---------------- Bot-protection honeypot (accounts/register.html) ------
+   Off-screen positioning rather than display:none/visibility:hidden —
+   some simple bots specifically check for those and skip such fields,
+   defeating the trap. This still looks like a normal, fillable field
+   to anything that doesn't render CSS. */
+.hp-field-wrap {
+  position: absolute;
+  left: -9999px;
+  top: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/* ---------------- Home hero ---------------- */
+.hero {
+  border-bottom-color: var(--line) !important;
+}
+.hero-title {
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  max-width: 20ch;
+}
+.hero-subtitle {
+  max-width: 60ch;
+}
+.hero-search {
+  max-width: 32rem;
+}
+
+@media (max-width: 576px) {
+  .registry-row { flex-wrap: wrap; }
+  .registry-row .code { min-width: auto; }
+}

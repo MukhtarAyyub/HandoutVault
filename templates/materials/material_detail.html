@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}{{ material.title }} — University Materials{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="small text-muted mb-2">
+  <a href="{% url 'home' %}">Faculties</a> &rsaquo;
+  <a href="{% url 'academics:department_list' material.course.department.faculty.slug %}">{{ material.course.department.faculty.name }}</a> &rsaquo;
+  <a href="{% url 'materials:material_list' %}?course={{ material.course.id }}">{{ material.course.code }}</a>
+</nav>
+
+<div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-1">
+  <h1 class="font-display h3 mb-0">{{ material.title }}</h1>
+  {% if user.is_authenticated and user.role == 'admin' %}
+    <div class="d-flex gap-2">
+      <a href="{% url 'materials:material_edit' material.pk %}" class="btn btn-outline-primary btn-sm">Edit</a>
+      <a href="{% url 'materials:material_delete' material.pk %}" class="btn btn-outline-danger btn-sm">Delete</a>
+    </div>
+  {% endif %}
+</div>
+<p class="text-muted mb-4">{{ material.course.code }} — {{ material.course.title }}</p>
+
+<div class="row g-4">
+  <div class="col-md-4 order-md-2">
+    <div class="panel mb-3">
+      <dl class="mb-0">
+        <dt class="small text-muted">Level</dt>
+        <dd>{{ material.get_level_display }}</dd>
+        <dt class="small text-muted">Semester</dt>
+        <dd>{{ material.semester }}</dd>
+        <dt class="small text-muted">Session</dt>
+        <dd>{{ material.session }}</dd>
+        {% if material.topic %}
+          <dt class="small text-muted">Topic</dt>
+          <dd>{{ material.topic }}</dd>
+        {% endif %}
+        {% if material.week %}
+          <dt class="small text-muted">Week</dt>
+          <dd>Week {{ material.week }}</dd>
+        {% endif %}
+        <dt class="small text-muted">File type</dt>
+        <dd>{{ material.file_type|upper }}</dd>
+        <dt class="small text-muted">File size</dt>
+        <dd class="mb-0">{{ material.file_size|filesizeformat }}</dd>
+      </dl>
+    </div>
+
+    <div class="d-grid gap-2">
+      <a href="{% url 'materials:material_download' material.pk %}" class="btn btn-primary">Download</a>
+      {% if user.is_authenticated %}
+        <form method="post" action="{% url 'bookmarks:toggle_bookmark' material.pk %}">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.path }}">
+          <button type="submit" class="btn {% if is_bookmarked %}btn-ink{% else %}btn-outline-primary{% endif %} w-100">
+            {% if is_bookmarked %}&#9733; Bookmarked{% else %}&#9734; Bookmark{% endif %}
+          </button>
+        </form>
+      {% endif %}
+    </div>
+
+    {% if user.is_authenticated and user.role == 'admin' %}
+      <p class="small text-muted mt-3 mb-0">
+        Uploaded {{ material.upload_date|date:"d M Y" }}{% if material.uploaded_by %} by {{ material.uploaded_by }}{% endif %}.
+        Downloaded {{ material.download_count }} time{{ material.download_count|pluralize }} so far.
+      </p>
+    {% endif %}
+  </div>
+
+  <div class="col-md-8 order-md-1">
+    {% if material.description %}
+      <p class="mb-4">{{ material.description|linebreaksbr }}</p>
+    {% endif %}
+
+    {% if material.is_previewable %}
+      <h2 class="h6 text-muted mb-2">Preview</h2>
+      <iframe src="{{ material.file.url }}" class="pdf-preview" title="Preview of {{ material.title }}"></iframe>
+    {% else %}
+      <div class="panel text-center text-muted py-5">
+        <p class="mb-0">Preview isn't available for {{ material.file_type|upper }} files yet — download to view.</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

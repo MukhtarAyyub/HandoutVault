@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}My bookmarks — University Materials{% endblock %}
+
+{% block content %}
+<h1 class="font-display h3 mb-1">My bookmarks</h1>
+<p class="text-muted mb-4">Materials you've saved for quick access later.</p>
+
+{% if bookmarks %}
+  <div class="registry">
+    {% for bookmark in bookmarks %}
+      <a href="{{ bookmark.material.get_absolute_url }}" class="registry-row">
+        <span class="code">{{ bookmark.material.course.code }}</span>
+        <span class="details">
+          <span class="title">{{ bookmark.material.title }}</span>
+          <div class="text-muted small mt-1">{{ bookmark.material.get_level_display }}, {{ bookmark.material.semester }}</div>
+        </span>
+        <span class="filetype">{{ bookmark.material.file_type|upper }}</span>
+      </a>
+    {% endfor %}
+  </div>
+{% else %}
+  <p class="text-muted">You haven't bookmarked anything yet. Find a material and tap <strong>Bookmark</strong> to save it here.</p>
+  <a href="{% url 'materials:material_list' %}" class="btn btn-outline-primary btn-sm">Browse materials</a>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,32 @@
+# --- Core framework -------------------------------------------------------
+Django>=5.1,<5.2
+
+# --- Database ---------------------------------------------------------------
+# psycopg2-binary talks to PostgreSQL; dj-database-url lets settings.py read
+# a single DATABASE_URL env var (the format most free-tier hosts hand you)
+# instead of five separate DB_* variables. SQLite needs neither and is used
+# automatically when DATABASE_URL is unset (see config/settings.py).
+psycopg2-binary>=2.9,<3.0
+dj-database-url>=2.2,<3.0
+
+# --- Configuration -----------------------------------------------------------
+python-dotenv>=1.0,<2.0
+
+# --- Security (see SECURITY.md for what each one is doing here) --------------
+argon2-cffi>=23.1,<24.0   # strong password hashing (PASSWORD_HASHERS in settings.py)
+django-axes>=7.0,<8.0     # login attempt throttling / lockout
+django-csp>=4.0,<5.0      # Content-Security-Policy header
+pip-audit>=2.7,<3.0       # `pip-audit` scans installed packages for known CVEs — run it,
+                          # and/or wire it into CI (see .github/workflows/security.yml)
+
+# --- Static & deployment ------------------------------------------------------
+whitenoise>=6.7,<7.0   # serves collected static files without a separate CDN/nginx step
+gunicorn>=22.0,<23.0   # production WSGI server (not used by `manage.py runserver`)
+
+# --- File storage (Cloudflare R2 — see DEPLOYMENT.md) -------------------------
+# django-storages[s3] speaks the S3 API, which Cloudflare R2 implements —
+# same package as for AWS S3 or any other S3-compatible provider. Only
+# activates in config/settings.py once AWS_STORAGE_BUCKET_NAME +
+# AWS_S3_ENDPOINT_URL are both set; falls back to local disk otherwise,
+# so this being installed doesn't require R2 to be configured.
+django-storages[s3]>=1.14,<2.0

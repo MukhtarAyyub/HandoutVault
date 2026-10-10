@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}{{ faculty.name }} — University Materials{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="small text-muted mb-2">
+  <a href="{% url 'home' %}">Faculties</a> &rsaquo; {{ faculty.name }}
+</nav>
+<h1 class="font-display h3 mb-4">{{ faculty.name }}</h1>
+
+{% if departments %}
+  <div class="directory-list">
+    {% for department in departments %}
+      <a class="directory-item" href="{% url 'academics:course_list' faculty.slug department.slug %}">
+        <span class="name">{{ department.name }}</span>
+        <span class="arrow">{{ department.courses.count }} course{{ department.courses.count|pluralize }} &rsaquo;</span>
+      </a>
+    {% endfor %}
+  </div>
+{% else %}
+  <p class="text-muted">No departments have been added to this faculty yet.</p>
+{% endif %}
+{% endblock %}

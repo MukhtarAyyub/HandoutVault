@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Log in — University Materials{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-sm-8 col-md-5">
+    <h1 class="font-display h3 mb-4">Log in</h1>
+
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <form method="post" class="panel">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
+        {{ form.username }}
+      </div>
+      <div class="mb-3">
+        <label for="{{ form.password.id_for_label }}" class="form-label">Password</label>
+        {{ form.password }}
+      </div>
+      <input type="hidden" name="next" value="{{ next }}">
+      <button type="submit" class="btn btn-primary w-100">Log in</button>
+    </form>
+    <p class="text-muted small mt-3">New here? <a href="{% url 'accounts:register' %}">Register as a student</a>.</p>
+  </div>
+</div>
+{% endblock %}
