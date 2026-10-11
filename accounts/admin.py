@@ -25,6 +25,6 @@ class UserAdmin(BaseUserAdmin):
     add_fieldsets = BaseUserAdmin.add_fieldsets + (("Platform role", {"fields": ("role", "student_id")}),)
 
 
-admin.site.site_header = "University Materials Platform Administration"
-admin.site.site_title = "University Materials Admin"
+admin.site.site_header = "HandoutVault Administration"
+admin.site.site_title = "HandoutVault Admin"
 admin.site.index_title = "Manage the catalog"

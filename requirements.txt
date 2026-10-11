@@ -1,5 +1,5 @@
 # --- Core framework -------------------------------------------------------
-Django>=5.1,<5.2
+Django>=5.2.18,<5.3
 
 # --- Database ---------------------------------------------------------------
 # psycopg2-binary talks to PostgreSQL; dj-database-url lets settings.py read

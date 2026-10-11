@@ -1,4 +1,4 @@
-"""WSGI config for the University Centralized Learning Materials Platform."""
+"""WSGI config for the HandoutVault."""
 import os
 
 from django.core.wsgi import get_wsgi_application

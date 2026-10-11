@@ -1,4 +1,4 @@
-# University Materials Platform
+# HandoutVault
 
 A centralized web application for university students to browse, search,
 preview, download, and bookmark lecture materials — with a simple Admin

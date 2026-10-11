@@ -1,5 +1,5 @@
 """
-Django settings for the University Centralized Learning Materials Platform.
+Django settings for the HandoutVault.
 
 Reads configuration from environment variables (see .env.example) so the
 same codebase can run against local SQLite in development and a managed

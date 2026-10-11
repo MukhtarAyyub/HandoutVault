@@ -1,4 +1,4 @@
-"""ASGI config for the University Centralized Learning Materials Platform."""
+"""ASGI config for the HandoutVault."""
 import os
 
 from django.core.asgi import get_asgi_application
