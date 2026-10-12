@@ -37,9 +37,19 @@ def env_bool(name, default=False):
 # (DB credentials, any future API keys) must go through os.environ /.env
 # the same way — never hard-code a credential into a .py file. See
 # SECURITY.md, "Hide API keys" / "Purge secrets from Git".
-SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "dev-insecure-secret-key-change-me")
 DEBUG = env_bool("DJANGO_DEBUG", True)
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "")
 
+if not DEBUG:
+    if not SECRET_KEY or SECRET_KEY in {
+        "change-this-to-a-random-secret-key",
+        "dev-insecure-secret-key-change-me",
+    }:
+        raise RuntimeError(
+            "Set DJANGO_SECRET_KEY to a strong, unique secret in production."
+        )
+elif not SECRET_KEY:
+    SECRET_KEY = "dev-insecure-secret-key-change-me"
 ALLOWED_HOSTS = [
     h.strip() for h in os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",") if h.strip()
 ]
