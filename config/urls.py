@@ -12,6 +12,7 @@ urlpatterns = [
     path("catalog/", include("academics.urls", namespace="academics")),
     path("materials/", include("materials.urls", namespace="materials")),
     path("bookmarks/", include("bookmarks.urls", namespace="bookmarks")),
+    path("exam-prep/", include("exams.urls", namespace="exams")),
 ]
 
 if settings.DEBUG:

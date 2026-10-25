@@ -1,83 +1,78 @@
 {% extends "base.html" %}
-
-{% block title %}{{ material.title }} — HandoutVault{% endblock %}
+{% block title %}{{ material.title }}{% endblock %}
 
 {% block content %}
-<nav aria-label="breadcrumb" class="small text-muted mb-2">
-  <a href="{% url 'home' %}">Faculties</a> &rsaquo;
-  <a href="{% url 'academics:department_list' material.course.department.faculty.slug %}">{{ material.course.department.faculty.name }}</a> &rsaquo;
-  <a href="{% url 'materials:material_list' %}?course={{ material.course.id }}">{{ material.course.code }}</a>
-</nav>
+<header class="page-head">
+  <nav class="crumbs" aria-label="Breadcrumb">
+    <a href="{% url 'home' %}">Faculties</a>{% include "partials/icon.html" with name="chevron-right" class="icon-sm" %}
+    <a href="{% url 'academics:department_list' material.course.department.faculty.slug %}">{{ material.course.department.faculty.name }}</a>{% include "partials/icon.html" with name="chevron-right" class="icon-sm" %}
+    <a href="{% url 'materials:material_list' %}?course={{ material.course.id }}">{{ material.course.code }}</a>
+  </nav>
+  <h1 class="page-title">{{ material.title }}</h1>
+  <p class="page-sub"><strong>{{ material.course.code }}</strong> {{ material.course.title }}</p>
+</header>
 
-<div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-1">
-  <h1 class="font-display h3 mb-0">{{ material.title }}</h1>
-  {% if user.is_authenticated and user.role == 'admin' %}
-    <div class="d-flex gap-2">
-      <a href="{% url 'materials:material_edit' material.pk %}" class="btn btn-outline-primary btn-sm">Edit</a>
-      <a href="{% url 'materials:material_delete' material.pk %}" class="btn btn-outline-danger btn-sm">Delete</a>
-    </div>
-  {% endif %}
-</div>
-<p class="text-muted mb-4">{{ material.course.code }} — {{ material.course.title }}</p>
-
-<div class="row g-4">
-  <div class="col-md-4 order-md-2">
-    <div class="panel mb-3">
-      <dl class="mb-0">
-        <dt class="small text-muted">Level</dt>
-        <dd>{{ material.get_level_display }}</dd>
-        <dt class="small text-muted">Semester</dt>
-        <dd>{{ material.semester }}</dd>
-        <dt class="small text-muted">Session</dt>
-        <dd>{{ material.session }}</dd>
-        {% if material.topic %}
-          <dt class="small text-muted">Topic</dt>
-          <dd>{{ material.topic }}</dd>
-        {% endif %}
-        {% if material.week %}
-          <dt class="small text-muted">Week</dt>
-          <dd>Week {{ material.week }}</dd>
-        {% endif %}
-        <dt class="small text-muted">File type</dt>
-        <dd>{{ material.file_type|upper }}</dd>
-        <dt class="small text-muted">File size</dt>
-        <dd class="mb-0">{{ material.file_size|filesizeformat }}</dd>
+<div class="split">
+  <aside class="split-aside stack">
+    <div class="panel glass">
+      <dl class="kv">
+        <dt>Level</dt><dd>{{ material.get_level_display }}</dd>
+        <dt>Semester</dt><dd>{{ material.semester }}</dd>
+        <dt>Session</dt><dd>{{ material.session }}</dd>
+        {% if material.topic %}<dt>Topic</dt><dd>{{ material.topic }}</dd>{% endif %}
+        {% if material.week %}<dt>Week</dt><dd>Week {{ material.week }}</dd>{% endif %}
+        <dt>File type</dt><dd>{{ material.file_type|upper }}</dd>
+        <dt>File size</dt><dd>{{ material.file_size|filesizeformat }}</dd>
       </dl>
     </div>
 
-    <div class="d-grid gap-2">
-      <a href="{% url 'materials:material_download' material.pk %}" class="btn btn-primary">Download</a>
+    <div class="stack-sm">
+      <a class="btn btn-primary btn-lg btn-block" href="{% url 'materials:material_download' material.pk %}">{% include "partials/icon.html" with name="download" %} Download</a>
       {% if user.is_authenticated %}
         <form method="post" action="{% url 'bookmarks:toggle_bookmark' material.pk %}">
           {% csrf_token %}
           <input type="hidden" name="next" value="{{ request.path }}">
-          <button type="submit" class="btn {% if is_bookmarked %}btn-ink{% else %}btn-outline-primary{% endif %} w-100">
-            {% if is_bookmarked %}&#9733; Bookmarked{% else %}&#9734; Bookmark{% endif %}
+          <button type="submit" class="btn btn-block">
+            {% if is_bookmarked %}{% include "partials/icon.html" with name="bookmark" class="icon-filled" %} Bookmarked{% else %}{% include "partials/icon.html" with name="bookmark" %} Bookmark{% endif %}
           </button>
         </form>
       {% endif %}
+      {% if user.is_authenticated and user.role == 'admin' %}
+        <div class="cluster">
+          <a class="btn btn-sm" href="{% url 'materials:material_edit' material.pk %}">{% include "partials/icon.html" with name="edit" %} Edit</a>
+          <a class="btn btn-sm" href="{% url 'materials:material_delete' material.pk %}">{% include "partials/icon.html" with name="trash" %} Delete</a>
+        </div>
+        <p class="muted small-note">Uploaded {{ material.upload_date|date:"d M Y" }}{% if material.uploaded_by %} by {{ material.uploaded_by }}{% endif %}. Downloaded {{ material.download_count }} time{{ material.download_count|pluralize }} so far.</p>
+      {% endif %}
     </div>
 
-    {% if user.is_authenticated and user.role == 'admin' %}
-      <p class="small text-muted mt-3 mb-0">
-        Uploaded {{ material.upload_date|date:"d M Y" }}{% if material.uploaded_by %} by {{ material.uploaded_by }}{% endif %}.
-        Downloaded {{ material.download_count }} time{{ material.download_count|pluralize }} so far.
-      </p>
-    {% endif %}
-  </div>
+    {# Exam preparation linked to this handout / its course (exams app) #}
+    <div class="panel glass stack-sm">
+      <h2 class="panel-title">Exam preparation</h2>
+      {% if user.is_authenticated %}
+        {% for summary in summaries %}
+          <a class="link-row" href="{{ summary.get_absolute_url }}">{% include "partials/icon.html" with name="layers" %}<span>{{ summary.title }}</span></a>
+        {% endfor %}
+        <a class="btn btn-sm btn-block" href="{% url 'exams:list' 'past-questions' %}?course={{ material.course_id }}">{% include "partials/icon.html" with name="file-text" %} Past questions for {{ material.course.code }} ({{ past_question_count }})</a>
+        {% if user.role == 'admin' %}
+          <a class="btn btn-sm btn-block" href="{% url 'exams:add' 'summaries' %}?handout={{ material.pk }}">{% include "partials/icon.html" with name="plus" %} Add a summary of this handout</a>
+        {% endif %}
+      {% else %}
+        <p class="muted">Past questions and summaries for this course are for logged-in students.</p>
+        <a class="btn btn-sm btn-block" href="{% url 'exams:hub' %}">{% include "partials/icon.html" with name="lock" %} Log in to open them</a>
+      {% endif %}
+    </div>
+  </aside>
 
-  <div class="col-md-8 order-md-1">
-    {% if material.description %}
-      <p class="mb-4">{{ material.description|linebreaksbr }}</p>
-    {% endif %}
-
+  <div class="split-main stack">
+    {% if material.description %}<div class="panel glass"><p>{{ material.description|linebreaksbr }}</p></div>{% endif %}
     {% if material.is_previewable %}
-      <h2 class="h6 text-muted mb-2">Preview</h2>
-      <iframe src="{{ material.file.url }}" class="pdf-preview" title="Preview of {{ material.title }}"></iframe>
-    {% else %}
-      <div class="panel text-center text-muted py-5">
-        <p class="mb-0">Preview isn't available for {{ material.file_type|upper }} files yet — download to view.</p>
+      <div>
+        <iframe src="{{ material.file.url }}" class="preview" title="Preview of {{ material.title }}"></iframe>
+        <p class="preview-note">Preview not showing on your phone? Use Download above.</p>
       </div>
+    {% else %}
+      <div class="empty glass">Preview isn't available for {{ material.file_type|upper }} files yet. Download it to view.</div>
     {% endif %}
   </div>
 </div>

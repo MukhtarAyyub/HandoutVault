@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}{% if mode == 'edit' %}Edit{% else %}Add{% endif %} {{ cfg.label|lower }}{% endblock %}
+
+{% block content %}
+<header class="page-head">
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="{% url 'exams:hub' %}">Exam preparation</a>{% include "partials/icon.html" with name="chevron-right" class="icon-sm" %}<a href="{% url 'exams:list' cfg.slug %}">{{ cfg.label_plural }}</a></nav>
+  <h1 class="page-title">{% if mode == 'edit' %}Edit{% else %}Add{% endif %} {{ cfg.label|lower }}</h1>
+  <p class="page-sub">Supported formats: PDF, PPTX, DOCX, XLSX and TXT. It appears under the course you pick, alongside that course's handouts.</p>
+</header>
+
+<form method="post" enctype="multipart/form-data" class="panel glass-strong form-narrow">
+  {% csrf_token %}
+  {% if form.non_field_errors %}
+    <div class="messages">{% for error in form.non_field_errors %}<div class="flash flash-danger" role="alert"><span>{{ error }}</span></div>{% endfor %}</div>
+  {% endif %}
+
+  {% include "partials/field.html" with field=form.title %}
+  {% include "partials/field.html" with field=form.course %}
+  {% if form.handout %}{% include "partials/field.html" with field=form.handout %}{% endif %}
+  <div class="form-row form-row-3">
+    {% include "partials/field.html" with field=form.level %}
+    {% include "partials/field.html" with field=form.semester %}
+    {% include "partials/field.html" with field=form.session %}
+  </div>
+  {% include "partials/field.html" with field=form.description %}
+  {% include "partials/field.html" with field=form.file %}
+  {% if mode == 'edit' and obj.file %}<p class="help">Leave the file empty to keep the current one ({{ obj.filename }}, {{ obj.file_size|filesizeformat }}).</p>{% endif %}
+
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary btn-lg">{% if mode == 'edit' %}Save changes{% else %}Add {{ cfg.label|lower }}{% endif %}</button>
+    <a href="{% if mode == 'edit' %}{{ obj.get_absolute_url }}{% else %}{% url 'exams:list' cfg.slug %}{% endif %}" class="btn btn-lg">Cancel</a>
+  </div>
+</form>
+{% endblock %}

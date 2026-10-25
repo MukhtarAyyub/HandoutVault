@@ -283,7 +283,7 @@ touching `User`.
 
 ### Add security headers
 Set explicitly in `config/settings.py`: `SECURE_CONTENT_TYPE_NOSNIFF`,
-`SECURE_REFERRER_POLICY = "same-origin"`, `X_FRAME_OPTIONS = "DENY"`,
+`SECURE_REFERRER_POLICY = "same-origin"`, `X_FRAME_OPTIONS = "SAMEORIGIN"` (see the update note at the end),
 plus HSTS (`SECURE_HSTS_SECONDS` + subdomains + preload) outside
 `DEBUG`. `django-csp` (new dependency) adds a Content-Security-Policy —
 tuned to what this app's own templates actually load (Bootstrap +
@@ -331,3 +331,24 @@ to actually run a scan itself — the pinned version ranges in
 `requirements.txt` are reasonable/current as of when this was written,
 but **run `pip-audit` yourself before deploying**, don't take that on
 faith.
+
+---
+
+### Update: Exam Preparation + the glass interface
+
+- **Exam content follows the same rules as handouts.** Every `/exam-prep/` page needs a login
+  (`@login_required`: signed-out visitors are sent to the login page and brought back afterwards);
+  adding, editing and deleting is Admin-only (`@admin_required`); every upload goes through the same
+  extension / size / real-content check (`materials.validators`). Covered by `exams/tests.py`.
+- **`X_FRAME_OPTIONS` is now `SAMEORIGIN`** (and the CSP says `frame-ancestors 'self'`) instead of `DENY`.
+  Other websites still cannot frame this one, so clickjacking protection is unchanged; the change lets the
+  handout page show a PDF preview of a file served from this same domain (local storage). With `DENY` that
+  preview was blocked. Files served from Cloudflare R2 were never affected. Covered by
+  `config/test_pages.py::SecurityHeaderTests`.
+- **Fewer third-party requests.** The redesign dropped the Bootstrap CDN and Google Fonts (system fonts, one
+  stylesheet, one script), so pages no longer contact any third party. The CSP allow-list in
+  `config/settings.py` still names those hosts; you can remove `https://cdnjs.cloudflare.com` and the Google
+  Fonts entries from it whenever you like.
+- **A bug fixed along the way:** the old handout filters used an inline `onchange=` handler, which the CSP
+  (correctly) blocks, so the dropdowns didn't apply by themselves. Filtering is now done by `static/js/app.js`.
+  `config/test_pages.py` fails if any page ever ships an inline handler, inline script or `style=` attribute again.

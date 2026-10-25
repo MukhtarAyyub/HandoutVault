@@ -3,28 +3,54 @@
 {% block title %}Find your course handouts{% endblock %}
 
 {% block content %}
-<section class="hero py-4 py-md-5 mb-4 border-bottom">
-  <h1 class="font-display hero-title mb-3">Find the lecture note, not the runaround.</h1>
-  <p class="text-muted hero-subtitle mb-4">Search by course code, topic, or title — or browse down from your faculty to your department to your course.</p>
-  <form action="{% url 'materials:material_list' %}" method="get" class="d-flex hero-search">
-    <input type="search" name="q" class="form-control form-control-lg me-2" placeholder="e.g. CSE 203,Software Engineering…" aria-label="Search course, topic or lecturer">
-    <button type="submit" class="btn btn-primary btn-lg">Search</button>
-  </form>
+<section class="hero">
+  <div class="hero-art" aria-hidden="true">
+    <span class="art-tile art-a">{% include "partials/icon.html" with name="book-open" %}</span>
+    <span class="art-tile art-b">{% include "partials/icon.html" with name="graduation" %}</span>
+    <span class="art-tile art-c">{% include "partials/icon.html" with name="file-text" %}</span>
+  </div>
+  <h1 class="hero-title">Find the lecture note, not the runaround.</h1>
+  <p class="hero-sub">Search by course code, topic, or title, or browse down from your faculty to your department to your course.</p>
+
+  <div class="hero-actions">
+    <form class="searchbar" action="{% url 'materials:material_list' %}" method="get" role="search">
+      <span class="searchbar-icon">{% include "partials/icon.html" with name="search" %}</span>
+      <input type="search" name="q" placeholder="e.g. CSE 203, Software Engineering…" aria-label="Search course, topic or title" autocomplete="off">
+      <button type="submit" class="orb" aria-label="Search">{% include "partials/icon.html" with name="arrow-right" %}</button>
+    </form>
+
+    {# Directly under the search bar. exams:hub is login-protected, so a signed-out visitor is sent to the login page first and brought back here afterwards. #}
+    <a class="exam-cta glass-strong" href="{% url 'exams:hub' %}">
+      <span class="exam-cta-icon">{% include "partials/icon.html" with name="graduation" %}</span>
+      <span class="exam-cta-text"><strong>Exam Preparation</strong><small>Past questions and summaries</small></span>
+      {% if not user.is_authenticated %}<span class="exam-cta-lock" title="Log in required">{% include "partials/icon.html" with name="lock" class="icon-sm" %}<span class="sr-only">Log in required</span></span>{% endif %}
+      <span class="exam-cta-go">{% include "partials/icon.html" with name="chevron-right" %}</span>
+    </a>
+  </div>
 </section>
 
+{% if stats.handouts or stats.past_questions or stats.summaries %}
+<section class="widgets" aria-label="What's in the library">
+  <div class="widget glass"><span class="widget-icon">{% include "partials/icon.html" with name="book-open" %}</span><span class="widget-number">{{ stats.handouts }}</span><span class="widget-label">Handouts</span></div>
+  <div class="widget glass"><span class="widget-icon">{% include "partials/icon.html" with name="file-text" %}</span><span class="widget-number">{{ stats.past_questions }}</span><span class="widget-label">Past questions</span></div>
+  <div class="widget glass"><span class="widget-icon">{% include "partials/icon.html" with name="layers" %}</span><span class="widget-number">{{ stats.summaries }}</span><span class="widget-label">Summaries</span></div>
+</section>
+{% endif %}
+
 <section>
-  <h2 class="font-display h4 mb-3">Faculties</h2>
+  <div class="section-head"><h2>Faculties</h2></div>
   {% if faculties %}
-    <div class="directory-list">
+    <div class="grid">
       {% for faculty in faculties %}
-        <a class="directory-item" href="{% url 'academics:department_list' faculty.slug %}">
-          <span class="name">{{ faculty.name }}</span>
-          <span class="arrow">{{ faculty.departments.count }} department{{ faculty.departments.count|pluralize }} &rsaquo;</span>
+        <a class="tile glass" href="{% url 'academics:department_list' faculty.slug %}">
+          <span class="tile-icon">{% include "partials/icon.html" with name="building" %}</span>
+          <span class="tile-name">{{ faculty.name }}</span>
+          <span class="tile-sub">{{ faculty.department_total }} department{{ faculty.department_total|pluralize }}</span>
         </a>
       {% endfor %}
     </div>
   {% else %}
-    <p class="text-muted">No faculties have been added yet. An administrator can add them from the <a href="{% url 'admin:index' %}">admin dashboard</a>.</p>
+    <div class="empty glass">No faculties have been added yet. An administrator can add them from the <a href="{% url 'admin:index' %}">admin site</a>.</div>
   {% endif %}
 </section>
 {% endblock %}

@@ -1,23 +1,22 @@
 {% extends "base.html" %}
-
-{% block title %}{{ faculty.name }} — HandoutVault{% endblock %}
-
+{% block title %}{{ faculty.name }}{% endblock %}
 {% block content %}
-<nav aria-label="breadcrumb" class="small text-muted mb-2">
-  <a href="{% url 'home' %}">Faculties</a> &rsaquo; {{ faculty.name }}
-</nav>
-<h1 class="font-display h3 mb-4">{{ faculty.name }}</h1>
-
+<header class="page-head">
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="{% url 'home' %}">Faculties</a>{% include "partials/icon.html" with name="chevron-right" class="icon-sm" %}<span>{{ faculty.name }}</span></nav>
+  <h1 class="page-title">{{ faculty.name }}</h1>
+  <p class="page-sub">Choose a department to see its courses.</p>
+</header>
 {% if departments %}
-  <div class="directory-list">
+  <div class="grid">
     {% for department in departments %}
-      <a class="directory-item" href="{% url 'academics:course_list' faculty.slug department.slug %}">
-        <span class="name">{{ department.name }}</span>
-        <span class="arrow">{{ department.courses.count }} course{{ department.courses.count|pluralize }} &rsaquo;</span>
+      <a class="tile glass" href="{% url 'academics:course_list' faculty.slug department.slug %}">
+        <span class="tile-icon">{% include "partials/icon.html" with name="book-open" %}</span>
+        <span class="tile-name">{{ department.name }}</span>
+        {% with n=department.courses.count %}<span class="tile-sub">{{ n }} course{{ n|pluralize }}</span>{% endwith %}
       </a>
     {% endfor %}
   </div>
 {% else %}
-  <p class="text-muted">No departments have been added to this faculty yet.</p>
+  <div class="empty glass">No departments have been added to this faculty yet.</div>
 {% endif %}
 {% endblock %}

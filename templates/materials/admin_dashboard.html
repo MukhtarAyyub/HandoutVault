@@ -1,77 +1,59 @@
 {% extends "base.html" %}
 {% load humanize %}
-
-{% block title %}Dashboard — HandoutVault{% endblock %}
+{% block title %}Dashboard{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
-  <h1 class="font-display h3 mb-0">Dashboard</h1>
-  <div class="d-flex gap-2">
-    <a href="{% url 'materials:material_upload' %}" class="btn btn-primary btn-sm">Upload material</a>
-    <a href="{% url 'admin:index' %}" class="btn btn-outline-primary btn-sm">Full admin</a>
-  </div>
+<header class="page-head">
+  <h1 class="page-title">Dashboard</h1>
+  <p class="page-sub">A quick look at the library.</p>
+</header>
+
+<div class="actions-row">
+  <a class="btn btn-primary btn-sm" href="{% url 'materials:material_upload' %}">{% include "partials/icon.html" with name="upload" %} Upload handout</a>
+  <a class="btn btn-sm" href="{% url 'exams:add' 'past-questions' %}">{% include "partials/icon.html" with name="plus" %} Add past question</a>
+  <a class="btn btn-sm" href="{% url 'exams:add' 'summaries' %}">{% include "partials/icon.html" with name="plus" %} Add summary</a>
+  <a class="btn btn-sm" href="{% url 'admin:index' %}">Full admin site</a>
 </div>
 
-<div class="row g-4 mb-5">
-  <div class="col-6 col-lg-3">
-    <div class="stat-block">
-      <div class="stat-number">{{ total_students|intcomma }}</div>
-      <div class="stat-label">Students</div>
-    </div>
-  </div>
-  <div class="col-6 col-lg-3">
-    <div class="stat-block">
-      <div class="stat-number">{{ total_courses|intcomma }}</div>
-      <div class="stat-label">Courses</div>
-    </div>
-  </div>
-  <div class="col-6 col-lg-3">
-    <div class="stat-block">
-      <div class="stat-number">{{ total_materials|intcomma }}</div>
-      <div class="stat-label">Materials</div>
-    </div>
-  </div>
-  <div class="col-6 col-lg-3">
-    <div class="stat-block">
-      <div class="stat-number">{{ total_downloads|intcomma }}</div>
-      <div class="stat-label">Downloads</div>
-    </div>
-  </div>
+<div class="stat-grid">
+  <div class="stat glass">{% include "partials/icon.html" with name="users" %}<div class="stat-number">{{ total_students|intcomma }}</div><div class="stat-label">Students</div></div>
+  <div class="stat glass">{% include "partials/icon.html" with name="graduation" %}<div class="stat-number">{{ total_courses|intcomma }}</div><div class="stat-label">Courses</div></div>
+  <div class="stat glass">{% include "partials/icon.html" with name="book-open" %}<div class="stat-number">{{ total_materials|intcomma }}</div><div class="stat-label">Handouts</div></div>
+  <div class="stat glass">{% include "partials/icon.html" with name="download" %}<div class="stat-number">{{ total_downloads|intcomma }}</div><div class="stat-label">Handout downloads</div></div>
+  <div class="stat glass">{% include "partials/icon.html" with name="file-text" %}<div class="stat-number">{{ total_past_questions|intcomma }}</div><div class="stat-label">Past questions</div></div>
+  <div class="stat glass">{% include "partials/icon.html" with name="layers" %}<div class="stat-number">{{ total_summaries|intcomma }}</div><div class="stat-label">Summaries</div></div>
 </div>
 
-<div class="row g-4">
-  <div class="col-md-6">
-    <h2 class="h6 text-muted mb-2">Recently uploaded</h2>
+<div class="grid grid-wide">
+  <section>
+    <div class="section-head"><h2>Recently uploaded</h2></div>
     {% if recent_materials %}
-      <div class="registry">
+      <div class="list glass">
         {% for material in recent_materials %}
-          <a href="{{ material.get_absolute_url }}" class="registry-row">
-            <span class="code">{{ material.course.code }}</span>
-            <span class="details"><span class="title">{{ material.title }}</span></span>
+          <a class="row-item" href="{{ material.get_absolute_url }}">
+            <span class="row-code">{{ material.course.code }}</span>
+            <span class="row-body"><span class="row-title">{{ material.title }}</span></span>
+            <span class="row-trail">{% include "partials/icon.html" with name="chevron-right" %}</span>
           </a>
         {% endfor %}
       </div>
-    {% else %}
-      <p class="text-muted small">Nothing uploaded yet.</p>
-    {% endif %}
-  </div>
-
-  <div class="col-md-6">
-    <h2 class="h6 text-muted mb-2">Recent downloads</h2>
+    {% else %}<div class="empty glass">Nothing uploaded yet.</div>{% endif %}
+  </section>
+  <section>
+    <div class="section-head"><h2>Recent downloads</h2></div>
     {% if recent_downloads %}
-      <div class="registry">
+      <div class="list glass">
         {% for download in recent_downloads %}
-          <a href="{{ download.material.get_absolute_url }}" class="registry-row">
-            <span class="details">
-              <span class="title">{{ download.material.title }}</span>
-              <div class="text-muted small mt-1">{{ download.student|default:"A student" }} downloaded this {{ download.downloaded_at|timesince }} ago</div>
+          <a class="row-item" href="{{ download.material.get_absolute_url }}">
+            <span class="row-body">
+              <span class="row-title">{{ download.material.title }}</span>
+              <span class="row-sub">{{ download.student|default:"A student" }} downloaded this {{ download.downloaded_at|timesince }} ago</span>
             </span>
+            <span class="row-trail">{% include "partials/icon.html" with name="chevron-right" %}</span>
           </a>
         {% endfor %}
       </div>
-    {% else %}
-      <p class="text-muted small">No downloads yet.</p>
-    {% endif %}
-  </div>
+    {% else %}<div class="empty glass">No downloads yet.</div>{% endif %}
+  </section>
 </div>
 {% endblock %}

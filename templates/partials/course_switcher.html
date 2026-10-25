@@ -1,0 +1,9 @@
+{% comment %} Handouts | Past questions | Summaries for ONE course - the "same course, different way" switcher.
+   Args: course, counts (dict from exams.utils.course_resource_counts), active ("handouts" | "past-questions" | "summaries"). {% endcomment %}
+{% if course %}
+<nav class="segmented glass" aria-label="Study material for {{ course.code }}">
+  <a class="seg{% if active == 'handouts' %} is-active{% endif %}" href="{% url 'materials:material_list' %}?course={{ course.pk }}">Handouts <span class="seg-count">{{ counts.handouts }}</span></a>
+  <a class="seg{% if active == 'past-questions' %} is-active{% endif %}" href="{% url 'exams:list' 'past-questions' %}?course={{ course.pk }}">Past questions <span class="seg-count">{{ counts.past_questions }}</span></a>
+  <a class="seg{% if active == 'summaries' %} is-active{% endif %}" href="{% url 'exams:list' 'summaries' %}?course={{ course.pk }}">Summaries <span class="seg-count">{{ counts.summaries }}</span></a>
+</nav>
+{% endif %}

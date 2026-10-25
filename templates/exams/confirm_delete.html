@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Delete {{ cfg.label|lower }}{% endblock %}
+{% block content %}
+<div class="auth-card glass-strong">
+  <h1 class="auth-title">Delete this {{ cfg.label|lower }}?</h1>
+  <div class="panel glass auth-gap">
+    <p><strong>{{ obj.title }}</strong></p>
+    <p class="muted">{{ obj.course.code }} {{ obj.course.title }}, {{ obj.get_level_display }}, {{ obj.session }}</p>
+  </div>
+  <p class="muted">This removes the file from storage and the {{ cfg.label|lower }} from the site. It can't be undone.</p>
+  <form method="post" class="form-actions">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">{% include "partials/icon.html" with name="trash" %} Yes, delete it</button>
+    <a href="{{ obj.get_absolute_url }}" class="btn">Cancel</a>
+  </form>
+</div>
+{% endblock %}
