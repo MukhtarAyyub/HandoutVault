@@ -1,26 +1,28 @@
 {% extends "base.html" %}
-
-{% block title %}My bookmarks — HandoutVault{% endblock %}
-
+{% block title %}Saved handouts{% endblock %}
 {% block content %}
-<h1 class="font-display h3 mb-1">My bookmarks</h1>
-<p class="text-muted mb-4">Materials you've saved for quick access later.</p>
-
+<header class="page-head">
+  <h1 class="page-title">Saved</h1>
+  <p class="page-sub">Handouts you've bookmarked for quick access.</p>
+</header>
 {% if bookmarks %}
-  <div class="registry">
+  <div class="list glass">
     {% for bookmark in bookmarks %}
-      <a href="{{ bookmark.material.get_absolute_url }}" class="registry-row">
-        <span class="code">{{ bookmark.material.course.code }}</span>
-        <span class="details">
-          <span class="title">{{ bookmark.material.title }}</span>
-          <div class="text-muted small mt-1">{{ bookmark.material.get_level_display }}, {{ bookmark.material.semester }}</div>
+      <a class="row-item" href="{{ bookmark.material.get_absolute_url }}">
+        <span class="ftype" data-type="{{ bookmark.material.file_type }}">{{ bookmark.material.file_type|upper }}</span>
+        <span class="row-body">
+          <span class="row-title">{{ bookmark.material.title }}</span>
+          <span class="row-sub"><strong>{{ bookmark.material.course.code }}</strong> {{ bookmark.material.course.title }}</span>
+          <span class="row-chips"><span class="chip">{{ bookmark.material.get_level_display }}</span><span class="chip">{{ bookmark.material.semester }}</span></span>
         </span>
-        <span class="filetype">{{ bookmark.material.file_type|upper }}</span>
+        <span class="row-trail">{% include "partials/icon.html" with name="chevron-right" %}</span>
       </a>
     {% endfor %}
   </div>
 {% else %}
-  <p class="text-muted">You haven't bookmarked anything yet. Find a material and tap <strong>Bookmark</strong> to save it here.</p>
-  <a href="{% url 'materials:material_list' %}" class="btn btn-outline-primary btn-sm">Browse materials</a>
+  <div class="empty glass stack-sm">
+    <p>You haven't bookmarked anything yet. Open a handout and tap Bookmark to save it here.</p>
+    <a class="btn btn-primary btn-sm" href="{% url 'materials:material_list' %}">Browse handouts</a>
+  </div>
 {% endif %}
 {% endblock %}

@@ -1,72 +1,32 @@
 {% extends "base.html" %}
-
-{% block title %}Register — HandoutVault{% endblock %}
-
+{% block title %}Register{% endblock %}
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-12 col-sm-9 col-md-6">
-    <h1 class="font-display h3 mb-1">Create a student account</h1>
-    <p class="text-muted mb-4">Materials are uploaded by administrators — students browse, search, preview, download, and bookmark.</p>
+<div class="auth-card auth-card-wide glass-strong">
+  <h1 class="auth-title">Create a student account</h1>
+  <p class="muted auth-lead">Handouts are uploaded by administrators. Students browse, search, preview, download, bookmark and prepare for exams.</p>
 
-    <form method="post" class="panel">
-      {% csrf_token %}
+  <form method="post">
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+      <div class="messages">{% for error in form.non_field_errors %}<div class="flash flash-danger" role="alert"><span>{{ error }}</span></div>{% endfor %}</div>
+    {% endif %}
 
-      {% if form.non_field_errors %}
-        <div class="alert alert-danger">{{ form.non_field_errors }}</div>
-      {% endif %}
+    {# Bot trap (accounts.forms.StudentRegistrationForm.website): off-screen for people, tempting for bots. #}
+    <div class="hp-field-wrap" aria-hidden="true">{{ form.website }}</div>
 
-      <div class="hp-field-wrap" aria-hidden="true">
-        {{ form.website }}
-      </div>
-
-      <div class="row">
-        <div class="col-6 mb-3">
-          <label for="{{ form.first_name.id_for_label }}" class="form-label">First name</label>
-          {{ form.first_name }}
-          {% for error in form.first_name.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
-        </div>
-        <div class="col-6 mb-3">
-          <label for="{{ form.last_name.id_for_label }}" class="form-label">Last name</label>
-          {{ form.last_name }}
-          {% for error in form.last_name.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
-        </div>
-      </div>
-
-      <div class="mb-3">
-        <label for="{{ form.student_id.id_for_label }}" class="form-label">Student ID</label>
-        {{ form.student_id }}
-        {% for error in form.student_id.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
-      </div>
-
-      <div class="mb-3">
-        <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
-        {{ form.email }}
-        {% for error in form.email.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
-      </div>
-
-      <div class="mb-3">
-        <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
-        {{ form.username }}
-        {% for error in form.username.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
-        {% if form.username.help_text %}<div class="form-text">{{ form.username.help_text }}</div>{% endif %}
-      </div>
-
-      <div class="row">
-        <div class="col-6 mb-3">
-          <label for="{{ form.password1.id_for_label }}" class="form-label">Password</label>
-          {{ form.password1 }}
-          {% for error in form.password1.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
-        </div>
-        <div class="col-6 mb-3">
-          <label for="{{ form.password2.id_for_label }}" class="form-label">Confirm password</label>
-          {{ form.password2 }}
-          {% for error in form.password2.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
-        </div>
-      </div>
-
-      <button type="submit" class="btn btn-primary w-100">Create account</button>
-    </form>
-    <p class="text-muted small mt-3">Already registered? <a href="{% url 'accounts:login' %}">Log in</a>.</p>
-  </div>
+    <div class="form-row form-row-2">
+      {% include "partials/field.html" with field=form.first_name %}
+      {% include "partials/field.html" with field=form.last_name %}
+    </div>
+    {% include "partials/field.html" with field=form.student_id %}
+    {% include "partials/field.html" with field=form.email %}
+    {% include "partials/field.html" with field=form.username %}
+    <div class="form-row form-row-2">
+      {% include "partials/field.html" with field=form.password1 %}
+      {% include "partials/field.html" with field=form.password2 %}
+    </div>
+    <button type="submit" class="btn btn-primary btn-lg btn-block">Create account</button>
+  </form>
+  <p class="muted center auth-foot">Already registered? <a href="{% url 'accounts:login' %}">Log in</a></p>
 </div>
 {% endblock %}

@@ -2,75 +2,99 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}HandoutVault{% endblock %}</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
-  <link href="{% static 'css/style.css' %}" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#d8ecf8">
+  <meta name="color-scheme" content="light dark">
+  <title>{% block title %}Find your course handouts{% endblock %} | HandoutVault</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%230a63e6'/%3E%3Cstop offset='1' stop-color='%2312b3c4'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='18' fill='url(%23g)'/%3E%3Cpath d='M12 26L32 16l20 10-20 10z' fill='none' stroke='white' stroke-width='3.5' stroke-linejoin='round'/%3E%3Cpath d='M20 33v10c7 6 17 6 24 0V33' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  {# Tiny, blocking on purpose: applies the light/dark theme before first paint. See static/js/app.js #}
+  <script src="{% static 'js/app.js' %}"></script>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
   {% block extra_head %}{% endblock %}
 </head>
 <body>
-  <header class="site-header">
-    <nav class="navbar navbar-expand-md py-2">
-      <div class="container">
-        <a class="navbar-brand" href="{% url 'home' %}">HandoutVault</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain" aria-controls="navMain" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navMain">
-          <ul class="navbar-nav me-auto mb-2 mb-md-0 ms-md-4">
-            <li class="nav-item"><a class="nav-link" href="{% url 'materials:material_list' %}">Browse materials</a></li>
-            {% if user.is_authenticated %}
-              {% if user.role == 'admin' %}
-                <li class="nav-item"><a class="nav-link" href="{% url 'materials:material_upload' %}">Upload</a></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'materials:admin_dashboard' %}">Dashboard</a></li>
-              {% else %}
-                <li class="nav-item"><a class="nav-link" href="{% url 'bookmarks:bookmark_list' %}">My bookmarks</a></li>
-              {% endif %}
-            {% endif %}
-          </ul>
-          <form class="d-flex search-form me-md-3 mb-2 mb-md-0" role="search" action="{% url 'materials:material_list' %}" method="get">
-            <input class="form-control form-control-sm" type="search" name="q" placeholder="Search course, topic…" value="{{ query|default:'' }}" aria-label="Search materials">
-          </form>
-          <div class="d-flex align-items-center gap-2">
-            {% if user.is_authenticated %}
-              <span class="text-light small d-none d-lg-inline">{{ user.get_full_name|default:user.username }}</span>
-              <form action="{% url 'accounts:logout' %}" method="post" class="m-0">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-role btn-sm">Log out</button>
-              </form>
+  {% include "partials/icons.html" %}
+  <a class="skip-link" href="#main">Skip to content</a>
+  {% with ns=request.resolver_match.namespace url_name=request.resolver_match.url_name %}
+
+  <header class="topbar-wrap">
+    <div class="container">
+      <div class="topbar glass">
+        <a class="brand" href="{% url 'home' %}" aria-label="HandoutVault home">
+          <span class="brand-mark">{% include "partials/icon.html" with name="graduation" %}</span>
+          <span class="brand-name">HandoutVault</span>
+        </a>
+
+        <nav class="topnav" aria-label="Main">
+          <a class="topnav-link{% if url_name == 'home' %} is-active{% endif %}" href="{% url 'home' %}">Home</a>
+          <a class="topnav-link{% if ns == 'academics' or ns == 'materials' and url_name != 'admin_dashboard' and url_name != 'material_upload' %} is-active{% endif %}" href="{% url 'materials:material_list' %}">Browse</a>
+          <a class="topnav-link{% if ns == 'exams' %} is-active{% endif %}" href="{% url 'exams:hub' %}">Exam prep</a>
+          {% if user.is_authenticated %}
+            {% if user.role == 'admin' %}
+              <a class="topnav-link{% if url_name == 'admin_dashboard' or url_name == 'material_upload' %} is-active{% endif %}" href="{% url 'materials:admin_dashboard' %}">Dashboard</a>
             {% else %}
-              <a href="{% url 'accounts:login' %}" class="btn btn-role btn-sm">Log in</a>
-              <a href="{% url 'accounts:register' %}" class="btn btn-role btn-sm">Register</a>
+              <a class="topnav-link{% if ns == 'bookmarks' %} is-active{% endif %}" href="{% url 'bookmarks:bookmark_list' %}">Saved</a>
             {% endif %}
-          </div>
+          {% endif %}
+        </nav>
+
+        <div class="topbar-actions">
+          <button type="button" class="icon-btn" data-theme-toggle aria-pressed="false" aria-label="Switch between light and dark">
+            {% include "partials/icon.html" with name="moon" class="icon-moon" %}
+            {% include "partials/icon.html" with name="sun" class="icon-sun" %}
+          </button>
+          {% if user.is_authenticated %}
+            {% if user.role == 'admin' %}
+              <a class="btn btn-primary btn-sm hide-sm" href="{% url 'materials:material_upload' %}">{% include "partials/icon.html" with name="upload" %} Upload</a>
+            {% endif %}
+            <span class="user-chip hide-sm">{{ user.first_name|default:user.username }}</span>
+            <form class="inline-form" action="{% url 'accounts:logout' %}" method="post">
+              {% csrf_token %}
+              <button type="submit" class="icon-btn" aria-label="Log out">{% include "partials/icon.html" with name="log-out" %}</button>
+            </form>
+          {% else %}
+            <a class="btn btn-sm" href="{% url 'accounts:login' %}">Log in</a>
+            <a class="btn btn-primary btn-sm hide-sm" href="{% url 'accounts:register' %}">Register</a>
+          {% endif %}
         </div>
       </div>
-    </nav>
+    </div>
   </header>
 
-  <main class="container py-4">
-    {% if messages %}
-      {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-          {{ message }}
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  <main id="main" class="page">
+    <div class="container">
+      {% if messages %}
+        <div class="messages" role="region" aria-label="Notifications">
+          {% for message in messages %}
+            <div class="flash flash-{{ message.tags }}" role="status">
+              <span>{{ message }}</span>
+              <button type="button" class="flash-close" data-dismiss aria-label="Dismiss">{% include "partials/icon.html" with name="x" class="icon-sm" %}</button>
+            </div>
+          {% endfor %}
         </div>
-      {% endfor %}
-    {% endif %}
-
-    {% block content %}{% endblock %}
+      {% endif %}
+      {% block content %}{% endblock %}
+    </div>
   </main>
 
-  <footer class="site-footer py-4 mt-5">
-    <div class="container d-flex flex-wrap justify-content-between gap-2">
-      <span>HandoutVault — a centralized store of lecture handouts and slides.</span>
-      <span>Admin and Student access only.</span>
-    </div>
+  <footer class="site-footer">
+    <div class="container">HandoutVault: lecture handouts, past questions and summaries in one place.</div>
   </footer>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
-  {% block extra_scripts %}{% endblock %}
+  <nav class="tabbar glass-strong" aria-label="Primary">
+    <a class="tab{% if url_name == 'home' %} is-active{% endif %}" href="{% url 'home' %}">{% include "partials/icon.html" with name="home" %}<span>Home</span></a>
+    <a class="tab{% if ns == 'academics' or ns == 'materials' and url_name != 'admin_dashboard' and url_name != 'material_upload' %} is-active{% endif %}" href="{% url 'materials:material_list' %}">{% include "partials/icon.html" with name="search" %}<span>Browse</span></a>
+    <a class="tab{% if ns == 'exams' %} is-active{% endif %}" href="{% url 'exams:hub' %}">{% include "partials/icon.html" with name="graduation" %}<span>Exam prep</span></a>
+    {% if user.is_authenticated %}
+      {% if user.role == 'admin' %}
+        <a class="tab{% if url_name == 'admin_dashboard' or url_name == 'material_upload' %} is-active{% endif %}" href="{% url 'materials:admin_dashboard' %}">{% include "partials/icon.html" with name="grid" %}<span>Dashboard</span></a>
+      {% else %}
+        <a class="tab{% if ns == 'bookmarks' %} is-active{% endif %}" href="{% url 'bookmarks:bookmark_list' %}">{% include "partials/icon.html" with name="bookmark" %}<span>Saved</span></a>
+      {% endif %}
+    {% else %}
+      <a class="tab{% if ns == 'accounts' %} is-active{% endif %}" href="{% url 'accounts:login' %}">{% include "partials/icon.html" with name="user" %}<span>Log in</span></a>
+    {% endif %}
+  </nav>
+  {% endwith %}
 </body>
 </html>

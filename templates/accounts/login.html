@@ -1,30 +1,20 @@
 {% extends "base.html" %}
-
-{% block title %}Log in — HandoutVault{% endblock %}
-
+{% block title %}Log in{% endblock %}
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-12 col-sm-8 col-md-5">
-    <h1 class="font-display h3 mb-4">Log in</h1>
+<div class="auth-card glass-strong">
+  <h1 class="auth-title">Welcome back</h1>
+  <p class="muted auth-lead">{% if next %}Log in to continue.{% else %}Log in to download handouts, save bookmarks and open exam preparation.{% endif %}</p>
 
+  <form method="post">
+    {% csrf_token %}
     {% if form.non_field_errors %}
-      <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+      <div class="messages">{% for error in form.non_field_errors %}<div class="flash flash-danger" role="alert"><span>{{ error }}</span></div>{% endfor %}</div>
     {% endif %}
-
-    <form method="post" class="panel">
-      {% csrf_token %}
-      <div class="mb-3">
-        <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
-        {{ form.username }}
-      </div>
-      <div class="mb-3">
-        <label for="{{ form.password.id_for_label }}" class="form-label">Password</label>
-        {{ form.password }}
-      </div>
-      <input type="hidden" name="next" value="{{ next }}">
-      <button type="submit" class="btn btn-primary w-100">Log in</button>
-    </form>
-    <p class="text-muted small mt-3">New here? <a href="{% url 'accounts:register' %}">Register as a student</a>.</p>
-  </div>
+    {% include "partials/field.html" with field=form.username %}
+    {% include "partials/field.html" with field=form.password %}
+    <input type="hidden" name="next" value="{{ next }}">
+    <button type="submit" class="btn btn-primary btn-lg btn-block">Log in</button>
+  </form>
+  <p class="muted center auth-foot">New here? <a href="{% url 'accounts:register' %}">Register as a student</a></p>
 </div>
 {% endblock %}

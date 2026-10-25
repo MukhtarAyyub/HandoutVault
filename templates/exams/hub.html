@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Exam preparation{% endblock %}
+
+{% block content %}
+<header class="page-head">
+  <h1 class="page-title">Exam Preparation</h1>
+  <p class="page-sub">Past questions and revision summaries, filed under the same faculty, department and course as your handouts.</p>
+</header>
+
+{% if user.role == 'admin' %}
+  <div class="actions-row">
+    <a class="btn btn-primary btn-sm" href="{% url 'exams:add' 'past-questions' %}">{% include "partials/icon.html" with name="plus" %} Add past question</a>
+    <a class="btn btn-sm" href="{% url 'exams:add' 'summaries' %}">{% include "partials/icon.html" with name="plus" %} Add summary</a>
+  </div>
+{% endif %}
+
+<div class="hub-grid">
+  {% for section in sections %}
+    <a class="hub-card glass-strong" data-kind="{{ section.kind.slug }}" href="{% url 'exams:list' section.kind.slug %}">
+      <span class="hub-icon">{% include "partials/icon.html" with name=section.kind.icon %}</span>
+      <span class="hub-title">{{ section.kind.label_plural }}</span>
+      <span class="hub-blurb">{{ section.kind.blurb }}</span>
+      <span class="hub-foot"><span class="chip chip-accent">{{ section.count }} item{{ section.count|pluralize }}</span><span>Open {% include "partials/icon.html" with name="chevron-right" class="icon-sm" %}</span></span>
+    </a>
+  {% endfor %}
+</div>
+
+<section>
+  <div class="section-head"><h2>Recently added</h2></div>
+  {% if recent %}
+    <div class="list glass">
+      {% for item in recent %}
+        <a class="row-item" href="{{ item.get_absolute_url }}">
+          <span class="ftype" data-type="{{ item.file_type }}">{{ item.file_type|upper }}</span>
+          <span class="row-body">
+            <span class="row-title">{{ item.title }}</span>
+            <span class="row-sub"><strong>{{ item.course.code }}</strong> {{ item.course.title }}</span>
+            <span class="row-chips"><span class="chip chip-accent">{{ item.kind_label }}</span><span class="chip">{{ item.get_level_display }}</span><span class="chip">{{ item.session }}</span></span>
+          </span>
+          <span class="row-trail">{% include "partials/icon.html" with name="chevron-right" %}</span>
+        </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty glass">Nothing here yet. {% if user.role == 'admin' %}Use the buttons above to add the first past question or summary.{% else %}Check back soon.{% endif %}</div>
+  {% endif %}
+</section>
+{% endblock %}

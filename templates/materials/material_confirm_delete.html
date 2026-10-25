@@ -1,22 +1,17 @@
 {% extends "base.html" %}
-
-{% block title %}Delete material — HandoutVault{% endblock %}
-
+{% block title %}Delete handout{% endblock %}
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-12 col-md-7">
-    <h1 class="font-display h3 mb-3">Delete this material?</h1>
-    <div class="panel mb-3">
-      <p class="mb-1"><strong>{{ material.title }}</strong></p>
-      <p class="text-muted mb-0">{{ material.course.code }} — {{ material.course.title }}, {{ material.get_level_display }}</p>
-    </div>
-    <p class="text-muted">This removes the file from storage and its metadata from the catalog, including any student bookmarks and its download history. This can't be undone.</p>
-
-    <form method="post" class="d-flex gap-2">
-      {% csrf_token %}
-      <button type="submit" class="btn btn-outline-danger">Yes, delete it</button>
-      <a href="{{ material.get_absolute_url }}" class="btn btn-outline-secondary">Cancel</a>
-    </form>
+<div class="auth-card glass-strong">
+  <h1 class="auth-title">Delete this handout?</h1>
+  <div class="panel glass auth-gap">
+    <p><strong>{{ material.title }}</strong></p>
+    <p class="muted">{{ material.course.code }} {{ material.course.title }}, {{ material.get_level_display }}</p>
   </div>
+  <p class="muted">This removes the file from storage and the handout from the catalog, including student bookmarks and its download history. It can't be undone. Summaries linked to it are kept, just unlinked.</p>
+  <form method="post" class="form-actions">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">{% include "partials/icon.html" with name="trash" %} Yes, delete it</button>
+    <a href="{{ material.get_absolute_url }}" class="btn">Cancel</a>
+  </form>
 </div>
 {% endblock %}

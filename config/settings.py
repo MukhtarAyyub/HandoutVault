@@ -1,5 +1,5 @@
 """
-Django settings for the HandoutVault.
+Django settings for the University Centralized Learning Materials Platform.
 
 Reads configuration from environment variables (see .env.example) so the
 same codebase can run against local SQLite in development and a managed
@@ -12,6 +12,8 @@ against a standard hardening checklist; the comments here summarize
 the "what", SECURITY.md has the "why" and what's out of scope.
 """
 import os
+import sys
+import tempfile
 from pathlib import Path
 
 import dj_database_url
@@ -20,6 +22,11 @@ from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
+
+# True while running `python manage.py test`. The WhiteNoise "manifest" static storage refuses to
+# render {% static %} until `collectstatic` has run, which it hasn't in a test run (or in CI), so
+# tests use Django's plain static storage instead. Production is unaffected.
+TESTING = len(sys.argv) > 1 and sys.argv[1] == "test"
 
 
 def env_bool(name, default=False):
@@ -37,8 +44,8 @@ def env_bool(name, default=False):
 # (DB credentials, any future API keys) must go through os.environ /.env
 # the same way — never hard-code a credential into a .py file. See
 # SECURITY.md, "Hide API keys" / "Purge secrets from Git".
-DEBUG = env_bool("DJANGO_DEBUG", True)
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "")
+DEBUG = env_bool("DJANGO_DEBUG", True)
 
 if not DEBUG:
     if not SECRET_KEY or SECRET_KEY in {
@@ -109,6 +116,7 @@ INSTALLED_APPS = [
     "academics",
     "materials",
     "bookmarks",
+    "exams",  # Exam Preparation: past questions + summaries
 ]
 
 MIDDLEWARE = [
@@ -229,13 +237,20 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
+if TESTING:
+    # Tests upload real files; keep them out of the project's media/ folder.
+    MEDIA_ROOT = Path(tempfile.mkdtemp(prefix="handoutvault-test-media-"))
 
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        "BACKEND": (
+            "django.contrib.staticfiles.storage.StaticFilesStorage"
+            if TESTING
+            else "whitenoise.storage.CompressedManifestStaticFilesStorage"
+        ),
     },
 }
 
@@ -259,7 +274,8 @@ AWS_QUERYSTRING_EXPIRE = 3600   # seconds a signed preview/download URL stays va
 AWS_DEFAULT_ACL = None          # R2 doesn't use S3-style ACLs — leave unset, never "public-read"
 AWS_S3_FILE_OVERWRITE = False   # don't silently replace a same-named file already in the bucket
 
-USE_R2_STORAGE = bool(AWS_STORAGE_BUCKET_NAME and AWS_S3_ENDPOINT_URL)
+# Never during tests: a developer with real R2 keys in .env must not have `manage.py test` upload to the live bucket.
+USE_R2_STORAGE = bool(AWS_STORAGE_BUCKET_NAME and AWS_S3_ENDPOINT_URL) and not TESTING
 if USE_R2_STORAGE:
     STORAGES["default"] = {"BACKEND": "storages.backends.s3.S3Storage"}
 
@@ -276,7 +292,10 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = MAX_MATERIAL_UPLOAD_MB * 1024 * 1024
 # ---------------------------------------------------------------------------
 SECURE_CONTENT_TYPE_NOSNIFF = True  # stop browsers "guessing" a different content-type than we set
 SECURE_REFERRER_POLICY = "same-origin"  # don't leak full URLs to third-party resources
-X_FRAME_OPTIONS = "DENY"  # this site is never meant to be framed by anyone else
+# SAMEORIGIN, not DENY: other websites still can't frame this one (clickjacking protection), but
+# the handout page may frame this site's OWN files - the PDF preview <iframe> - when materials are
+# served from this domain (local disk). With DENY, every locally-served preview was blocked.
+X_FRAME_OPTIONS = "SAMEORIGIN"
 
 # Content-Security-Policy — django-csp 4.x's dict-based config format;
 # if you're on django-csp 3.x, translate this into the individual
@@ -318,7 +337,7 @@ CONTENT_SECURITY_POLICY = {
         "img-src": ["'self'", "data:", *_file_storage_origins],
         "connect-src": ["'self'"],
         "frame-src": ["'self'", *_file_storage_origins],  # the PDF preview <iframe>
-        "frame-ancestors": ["'none'"],
+        "frame-ancestors": ["'self'"],  # same idea as X_FRAME_OPTIONS above
         "object-src": ["'none'"],
         "base-uri": ["'self'"],
         "form-action": ["'self'"],

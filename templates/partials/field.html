@@ -1,0 +1,7 @@
+{# One labelled form field with its help text and errors. Arg: field (a bound form field). #}
+<div class="field{% if field.errors %} has-error{% endif %}">
+  <label for="{{ field.id_for_label }}">{{ field.label }}{% if not field.field.required %} <span class="optional">(optional)</span>{% endif %}</label>
+  {{ field }}
+  {% if field.help_text %}<div class="help">{{ field.help_text }}</div>{% endif %}
+  {% for error in field.errors %}<p class="error" role="alert">{{ error }}</p>{% endfor %}
+</div>

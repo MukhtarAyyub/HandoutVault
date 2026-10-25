@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% comment %}
+  Browse / search / filter one kind of exam content (past questions or summaries). Built by
+  exams.views.resource_list. Same idea as the handouts page: filters are GET parameters, a <select>
+  change applies them at once (static/js/app.js), and the round search button applies them without JS.
+  Departments and courses are grouped under their faculty / department with <optgroup> headings.
+{% endcomment %}
+{% block title %}{{ cfg.label_plural }}{% endblock %}
+
+{% block content %}
+<header class="page-head">
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="{% url 'exams:hub' %}">Exam preparation</a>{% include "partials/icon.html" with name="chevron-right" class="icon-sm" %}<span>{{ cfg.label_plural }}</span></nav>
+  <h1 class="page-title">{% if course_obj %}{{ course_obj.code }}{% else %}{{ cfg.label_plural }}{% endif %}</h1>
+  <p class="page-sub">{% if course_obj %}{{ course_obj.title }}{% else %}{{ cfg.blurb }}{% endif %}</p>
+</header>
+
+{% if user.role == 'admin' %}
+  <div class="actions-row"><a class="btn btn-primary btn-sm" href="{% url 'exams:add' cfg.slug %}">{% include "partials/icon.html" with name="plus" %} Add {{ cfg.label|lower }}</a></div>
+{% endif %}
+
+{% if course_obj %}{% include "partials/course_switcher.html" with course=course_obj counts=course_counts active=cfg.slug %}{% endif %}
+
+<form method="get" class="filters glass" data-autosubmit>
+  <div class="searchbar">
+    <span class="searchbar-icon">{% include "partials/icon.html" with name="search" %}</span>
+    <input type="search" name="q" value="{{ q }}" placeholder="Search {{ cfg.label_plural|lower }} by course or title" aria-label="Search {{ cfg.label_plural|lower }}" autocomplete="off">
+    <button type="submit" class="orb" aria-label="Search and apply filters">{% include "partials/icon.html" with name="arrow-right" %}</button>
+  </div>
+
+  <input type="checkbox" id="filters-open" class="filters-check sr-only"{% if filter_count %} checked{% endif %}>
+  <label for="filters-open" class="btn btn-sm filters-toggle">{% include "partials/icon.html" with name="sliders" %} Filters{% if filter_count %} <span class="seg-count">{{ filter_count }}</span>{% endif %}</label>
+
+  <div class="filters-grid">
+    <div class="field">
+      <label for="f-faculty">Faculty</label>
+      <select id="f-faculty" name="faculty">
+        <option value="">All faculties</option>
+        {% for faculty in faculties %}<option value="{{ faculty.id }}"{% if selected.faculty == faculty.id %} selected{% endif %}>{{ faculty.name }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label for="f-department">Department</label>
+      <select id="f-department" name="department">
+        <option value="">All departments</option>
+        {% regroup departments by faculty as department_groups %}
+        {% for group in department_groups %}
+          <optgroup label="{{ group.grouper.name }}">
+            {% for department in group.list %}<option value="{{ department.id }}"{% if selected.department == department.id %} selected{% endif %}>{{ department.name }}</option>{% endfor %}
+          </optgroup>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label for="f-course">Course</label>
+      <select id="f-course" name="course">
+        <option value="">All courses</option>
+        {% regroup courses by department as course_groups %}
+        {% for group in course_groups %}
+          <optgroup label="{{ group.grouper.name }}">
+            {% for course in group.list %}<option value="{{ course.id }}"{% if selected.course == course.id %} selected{% endif %}>{{ course.code }} {{ course.title }}</option>{% endfor %}
+          </optgroup>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label for="f-level">Level</label>
+      <select id="f-level" name="level">
+        <option value="">All levels</option>
+        {% for value, label in levels %}<option value="{{ value }}"{% if selected.level == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label for="f-semester">Semester</label>
+      <select id="f-semester" name="semester">
+        <option value="">All semesters</option>
+        {% for semester in semesters %}<option value="{{ semester.id }}"{% if selected.semester == semester.id %} selected{% endif %}>{{ semester }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label for="f-session">Session</label>
+      <select id="f-session" name="session">
+        <option value="">All sessions</option>
+        {% for session in sessions %}<option value="{{ session.id }}"{% if selected.session == session.id %} selected{% endif %}>{{ session.name }}</option>{% endfor %}
+      </select>
+    </div>
+  </div>
+
+  <div class="cluster cluster-between">
+    <span class="muted">{{ page_obj.paginator.count }} result{{ page_obj.paginator.count|pluralize }}</span>
+    {% if has_filters %}<a class="btn btn-sm" href="{% url 'exams:list' cfg.slug %}">Clear filters</a>{% endif %}
+  </div>
+</form>
+
+{% if page_obj %}
+  <div class="list glass">
+    {% for item in page_obj %}
+      <a class="row-item" href="{{ item.get_absolute_url }}">
+        <span class="ftype" data-type="{{ item.file_type }}">{{ item.file_type|upper }}</span>
+        <span class="row-body">
+          <span class="row-title">{{ item.title }}</span>
+          <span class="row-sub"><strong>{{ item.course.code }}</strong> {{ item.course.title }}</span>
+          <span class="row-chips">
+            <span class="chip">{{ item.get_level_display }}</span>
+            <span class="chip">{{ item.semester }}</span>
+            <span class="chip">{{ item.session }}</span>
+            {% if item.handout %}<span class="chip chip-accent">{% include "partials/icon.html" with name="book-open" class="icon-sm" %} {{ item.handout.title }}</span>{% endif %}
+          </span>
+        </span>
+        <span class="row-trail">{% include "partials/icon.html" with name="chevron-right" %}</span>
+      </a>
+    {% endfor %}
+  </div>
+
+  {% if page_obj.has_other_pages %}
+    <nav class="pager" aria-label="Pagination">
+      {% if page_obj.has_previous %}<a class="btn btn-sm" href="?{{ base_query }}{% if base_query %}&{% endif %}page={{ page_obj.previous_page_number }}">Previous</a>{% endif %}
+      <span class="chip">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+      {% if page_obj.has_next %}<a class="btn btn-sm" href="?{{ base_query }}{% if base_query %}&{% endif %}page={{ page_obj.next_page_number }}">Next</a>{% endif %}
+    </nav>
+  {% endif %}
+{% else %}
+  <div class="empty glass">{% if has_filters %}Nothing matches those filters. Try clearing some of them.{% else %}No {{ cfg.label_plural|lower }} have been added yet.{% endif %}</div>
+{% endif %}
+{% endblock %}

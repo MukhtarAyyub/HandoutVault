@@ -26,13 +26,17 @@ accounts.permissions.admin_required decorator rather than re-checking
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.utils.http import urlencode
 
 from academics.models import AcademicSession, Course, Faculty, Semester
 from accounts.models import User
 from accounts.permissions import admin_required
+from exams.models import PastQuestion, Summary
+from exams.utils import course_resource_counts
 
 from .forms import MaterialUploadForm
 from .models import Download, Material
@@ -61,9 +65,18 @@ def home(request):
     """Landing page: search bar + the faculty directory."""
     query = request.GET.get("q", "").strip()
     if query:
-        return redirect(f"/materials/?q={query}")
-    faculties = Faculty.objects.all()
-    return render(request, "home.html", {"faculties": faculties})
+        return redirect(f"{reverse('materials:material_list')}?{urlencode({'q': query})}")
+
+    stats = {
+        "handouts": Material.objects.count(),
+        "past_questions": PastQuestion.objects.count(),
+        "summaries": Summary.objects.count(),
+    }
+
+    faculties = Faculty.objects.annotate(department_total=Count("departments"))
+    return render(request, "home.html", {"faculties": faculties, "stats": stats})    # department_total is counted in the same query, so the tiles don't cost one query each.
+    faculties = Faculty.objects.annotate(department_total=Count("departments"))
+    return render(request, "home.html", {"faculties": faculties, "stats": stats})
 
 
 def material_list(request):
@@ -118,8 +131,10 @@ def material_list(request):
         materials = materials.filter(course__department__slug=department)
 
     course_id_int = _safe_int(course_id)
+    course_obj = None
     if course_id_int is not None:
         materials = materials.filter(course_id=course_id_int)
+        course_obj = Course.objects.select_related("department", "department__faculty").filter(pk=course_id_int).first()
     level_int = _safe_int(level)
     if level_int is not None:
         materials = materials.filter(level=level_int)
@@ -148,6 +163,12 @@ def material_list(request):
     context = {
         "page_obj": page_obj,
         "base_query": base_query,
+        # When the page is filtered to one course: its details, and the counts for the
+        # Handouts | Past questions | Summaries switcher.
+        "course_obj": course_obj,
+        # How many of the dropdown filters are active (phones show it on the collapsed "Filters" button).
+        "filter_count": sum(1 for value in (faculty, level, semester_id, session_id, file_type) if value),
+        "course_counts": course_resource_counts(course_obj) if course_obj else None,
         "query": query,
         "bookmarked_ids": bookmarked_ids,
         "faculties": Faculty.objects.all(),
@@ -182,7 +203,13 @@ def material_detail(request, pk):
     return render(
         request,
         "materials/material_detail.html",
-        {"material": material, "is_bookmarked": is_bookmarked},
+        {
+            "material": material,
+            "is_bookmarked": is_bookmarked,
+            # Exam-prep content tied to this handout / its course (exams app).
+            "summaries": material.summaries.select_related("course", "semester", "session"),
+            "past_question_count": PastQuestion.objects.filter(course=material.course).count(),
+        },
     )
 
 
@@ -265,6 +292,8 @@ def admin_dashboard(request):
         "total_courses": Course.objects.count(),
         "total_materials": Material.objects.count(),
         "total_downloads": Download.objects.count(),
+        "total_past_questions": PastQuestion.objects.count(),
+        "total_summaries": Summary.objects.count(),
         "recent_materials": Material.objects.select_related("course")[:8],
         "recent_downloads": Download.objects.select_related("material", "student")[:8],
     }

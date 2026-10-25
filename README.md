@@ -1,4 +1,4 @@
-# HandoutVault
+# University Materials Platform
 
 A centralized web application for university students to browse, search,
 preview, download, and bookmark lecture materials — with a simple Admin
@@ -48,6 +48,9 @@ Admin and Student roles only, built to run on free-tier cloud resources.
 
 **Students** (register at `/accounts/register/`)
 - Everything above, plus:
+- **Exam Preparation** (`/exam-prep/`, login required): browse and download **past questions** and
+  **summaries**, filed under the same faculty / department / course as the handouts. A summary can
+  be linked to the handout it summarises and then appears on that handout's page
 - Download materials (every download is logged)
 - Preview PDFs in the browser before downloading
 - Bookmark materials and view them later at `/bookmarks/`
@@ -57,6 +60,8 @@ Admin and Student roles only, built to run on free-tier cloud resources.
 - Upload, edit, and delete materials at `/materials/upload/`
 - Manage the Faculty/Department/Course/Session/Semester catalog and
   student accounts via Django's built-in admin site at `/admin/`
+- Add, edit and delete **past questions** and **summaries** at `/exam-prep/<past-questions|summaries>/add/`
+  (Admin only; students can't upload)
 - A small stats dashboard at `/materials/dashboard/` (student/course/
   material/download totals, recent uploads and downloads)
 
@@ -71,7 +76,7 @@ see [What's intentionally not built yet](#whats-intentionally-not-built-yet).
 |------------|----------------------------------------------------|
 | Backend    | Python 3.12, Django 5.1                            |
 | Database   | PostgreSQL in production, SQLite for local dev      |
-| Frontend   | Django Templates, Bootstrap 5 (via CDN), small custom CSS |
+| Frontend   | Django Templates, one hand-written "Liquid Glass" stylesheet and about 100 lines of JavaScript. No frameworks, no CDN, no web fonts (system fonts) |
 | File storage | Local disk in dev; pluggable — see [cloud storage](#swapping-in-cloud-storage) |
 | Static files | WhiteNoise (no separate CDN/nginx step needed)   |
 | Auth       | Django's built-in auth, custom `User` model with a `role` field |
@@ -96,7 +101,8 @@ university_materials/
 ├── academics/               # Faculty, Department, Course, Session, Semester
 ├── materials/               # Material, Download, upload/search/preview views
 ├── bookmarks/                # student bookmarks
-├── templates/                # one subfolder per app, plus base.html + home.html
+├── exams/                    # Exam Preparation: past questions + summaries (models, views, forms, tests)
+├── templates/                # one subfolder per app, plus base.html, home.html and partials/ (icons, form field, course switcher)
 └── static/css/style.css       # the whole design system in one file
 ```
 
@@ -330,3 +336,19 @@ PDFs served without `DEBUG=True`'s permissive dev-server headers, or
 the file genuinely isn't a valid PDF (our upload validator checks the
 extension, not the file's real contents — see [How file uploads work](#how-file-uploads-work)).
 Downloading it directly is always available as a fallback.
+
+## Design: "Liquid Glass"
+
+The interface follows Apple's iOS 26/27 "Liquid Glass" look: frosted translucent surfaces over a soft
+gradient wallpaper, large rounded corners, capsule buttons, a glowing search bar, a floating tab bar on
+phones, and automatic light / dark themes (with a toggle that remembers the choice).
+
+- Everything lives in `static/css/style.css`. Colours, radii and shadows are CSS variables at the top;
+  change those to re-skin the whole site. The dark palette is defined once and generated into two places
+  on purpose (explicit choice, and the no-JavaScript fallback) - the file's header explains how.
+- `static/js/app.js` does three small things (theme toggle, filter auto-apply, dismissing banners) and
+  contains no inline code, so it works under the strict Content-Security-Policy.
+- Blur is expensive on cheap phones, so it's limited to a few large surfaces, and the site falls back
+  to solid panels where `backdrop-filter` is unavailable or the visitor asks for reduced transparency.
+- Icons are one inline SVG sprite (`templates/partials/icons.html`), used as
+  `{% include "partials/icon.html" with name="search" %}`.
